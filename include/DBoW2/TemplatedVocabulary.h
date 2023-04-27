@@ -23,6 +23,10 @@
 #include "BowVector.h"
 #include "ScoringObject.h"
 
+
+using namespace std;
+
+
 namespace DBoW2 {
 
 /// @param TDescriptor class of descriptor
@@ -32,7 +36,13 @@ template<class TDescriptor, class F>
 class TemplatedVocabulary
 {		
 public:
-  
+
+  void saveToTextFile(const std::string &filename) const;
+    /**
+   * Loads the vocabulary from a file
+   * @param filename
+   */
+
   /**
    * Initiates an empty vocabulary
    * @param k branching factor
@@ -1541,6 +1551,30 @@ std::ostream& operator<<(std::ostream &os,
 
   return os;
 }
+
+
+
+
+template<class TDescriptor, class F>
+void TemplatedVocabulary<TDescriptor,F>::saveToTextFile(const std::string &filename) const
+{
+    fstream f;
+    f.open(filename.c_str(),ios_base::out);
+    f << m_k << " " << m_L << " " << " " << m_scoring << " " << m_weighting << endl;
+
+    for(size_t i=1; i<m_nodes.size();i++)
+    {
+        const Node& node = m_nodes[i];
+        f << node.parent << " ";
+        if(node.isLeaf())
+            f << 1 << " ";
+        else
+            f << 0 << " ";
+        f << F::toString(node.descriptor) << " " << (double)node.weight << endl;
+    }
+    f.close();
+}
+
 
 } // namespace DBoW2
 
