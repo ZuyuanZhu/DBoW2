@@ -63,3 +63,5 @@ install(FILES "${PROJECT_BINARY_DIR}/DBoW2Config.cmake"
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/DBoW2/)
 install(DIRECTORY ${DEPENDENCY_INSTALL_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL)
 
+add_executable(create_orb_vocab demo/create_orb_vocab.cpp)
+target_link_libraries(create_orb_vocab ${OpenCV_LIBS} DBoW2)

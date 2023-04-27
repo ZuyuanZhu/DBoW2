@@ -66,6 +66,8 @@ void loadFeatures(vector<vector<cv::Mat > > &features)
   features.reserve(NIMAGES);
 
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
+  // cv::Ptr<cv::xfeatures2d::BriefDescriptorExtractor> brief = cv::xfeatures2d::BriefDescriptorExtractor::create();
+
 
   cout << "Extracting ORB features..." << endl;
   for(int i = 0; i < NIMAGES; ++i)
@@ -79,6 +81,10 @@ void loadFeatures(vector<vector<cv::Mat > > &features)
     cv::Mat descriptors;
 
     orb->detectAndCompute(image, mask, keypoints, descriptors);
+    // cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create();
+    // detector->detect(image, keypoints);
+    // brief->compute(image, keypoints, descriptors);
+
 
     features.push_back(vector<cv::Mat >());
     changeStructure(descriptors, features.back());
@@ -108,6 +114,7 @@ void testVocCreation(const vector<vector<cv::Mat > > &features)
   const ScoringType scoring = L1_NORM;
 
   OrbVocabulary voc(k, L, weight, scoring);
+  // BriefVocabulary voc(k, L, weight, scoring);
 
   cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
   voc.create(features);
@@ -145,8 +152,10 @@ void testDatabase(const vector<vector<cv::Mat > > &features)
 
   // load the vocabulary from disk
   OrbVocabulary voc("small_voc.yml.gz");
+  // BriefVocabulary voc("small_voc.yml.gz");
   
   OrbDatabase db(voc, false, 0); // false = do not use direct index
+  // BriefDatabase db(voc, false, 0); // false = do not use direct index
   // (so ignore the last param)
   // The direct index is useful if we want to retrieve the features that 
   // belong to some vocabulary node.
@@ -187,6 +196,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features)
   // once saved, we can load it again  
   cout << "Retrieving database once again..." << endl;
   OrbDatabase db2("small_db.yml.gz");
+  // BriefDatabase db2("small_db.yml.gz");
   cout << "... done! This is: " << endl << db2 << endl;
 }
 
