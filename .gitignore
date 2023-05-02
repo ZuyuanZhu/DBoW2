@@ -1,2 +1,10 @@
-/demo/build/images/
+# .gitignore
 
+# Ignore Visual Studio Code configuration files
+.vscode/
+
+# Ignore build directory
+build/
+
+# Ignore specific images in the demo/images folder
+demo/images/*.*
