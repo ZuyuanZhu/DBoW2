@@ -17,6 +17,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
 
+#include <boost/filesystem.hpp>
+
 
 using namespace DBoW2;
 using namespace std;
@@ -32,7 +34,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 // number of training images
-const int NIMAGES = 4544;
+int NIMAGES;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -53,43 +55,47 @@ int main()
 
   wait();
 
-  testDatabase(features);
+  // testDatabase(features);
 
   return 0;
 }
 
 // ----------------------------------------------------------------------------
 
-void loadFeatures(vector<vector<cv::Mat > > &features)
+void loadFeatures(vector<vector<cv::Mat>> &features)
 {
   features.clear();
-  features.reserve(NIMAGES);
 
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
-  // cv::Ptr<cv::xfeatures2d::BriefDescriptorExtractor> brief = cv::xfeatures2d::BriefDescriptorExtractor::create();
 
+  std::string image_folder = "images";
 
   cout << "Extracting ORB features..." << endl;
-  for(int i = 0; i < NIMAGES; ++i)
+  boost::filesystem::directory_iterator end_itr; // Default constructor yields past-the-end
+  for (boost::filesystem::directory_iterator itr(image_folder); itr != end_itr; ++itr)
   {
-    stringstream ss;
-    ss << "images/image" << i << ".png";
+    if (boost::filesystem::is_regular_file(itr->status()) &&
+        (itr->path().extension() == ".png" || itr->path().extension() == ".jpg"))
+    {
+      cv::Mat image = cv::imread(itr->path().string(), cv::IMREAD_GRAYSCALE);
+      cv::Mat mask;
+      vector<cv::KeyPoint> keypoints;
+      cv::Mat descriptors;
 
-    cv::Mat image = cv::imread(ss.str(), 0);
-    cv::Mat mask;
-    vector<cv::KeyPoint> keypoints;
-    cv::Mat descriptors;
+      orb->detectAndCompute(image, mask, keypoints, descriptors);
 
-    orb->detectAndCompute(image, mask, keypoints, descriptors);
-    // cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create();
-    // detector->detect(image, keypoints);
-    // brief->compute(image, keypoints, descriptors);
+      features.push_back(vector<cv::Mat>());
+      changeStructure(descriptors, features.back());
 
-
-    features.push_back(vector<cv::Mat >());
-    changeStructure(descriptors, features.back());
+      // Print the name of the read image
+      std::cout << "Processed image: " << itr->path().string() << std::endl;
+    }
   }
+
+  NIMAGES = features.size();
 }
+
+
 
 // ----------------------------------------------------------------------------
 
@@ -109,12 +115,11 @@ void testVocCreation(const vector<vector<cv::Mat > > &features)
 {
   // branching factor and depth levels 
   const int k = 10;
-  const int L = 3;
+  const int L = 6;
   const WeightingType weight = TF_IDF;
   const ScoringType scoring = L1_NORM;
 
   OrbVocabulary voc(k, L, weight, scoring);
-  // BriefVocabulary voc(k, L, weight, scoring);
 
   cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
   voc.create(features);
@@ -123,25 +128,25 @@ void testVocCreation(const vector<vector<cv::Mat > > &features)
   cout << "Vocabulary information: " << endl
   << voc << endl << endl;
 
-  // lets do something with this vocabulary
-  cout << "Matching images against themselves (0 low, 1 high): " << endl;
-  BowVector v1, v2;
-  for(int i = 0; i < NIMAGES; i++)
-  {
-    voc.transform(features[i], v1);
-    for(int j = 0; j < NIMAGES; j++)
-    {
-      voc.transform(features[j], v2);
+  // // lets do something with this vocabulary
+  // cout << "Matching images against themselves (0 low, 1 high): " << endl;
+  // BowVector v1, v2;
+  // for(int i = 0; i < NIMAGES; i++)
+  // {
+  //   voc.transform(features[i], v1);
+  //   for(int j = 0; j < NIMAGES; j++)
+  //   {
+  //     voc.transform(features[j], v2);
       
-      double score = voc.score(v1, v2);
-      cout << "Image " << i << " vs Image " << j << ": " << score << endl;
-    }
-  }
+  //     double score = voc.score(v1, v2);
+  //     cout << "Image " << i << " vs Image " << j << ": " << score << endl;
+  //   }
+  // }
 
   // save the vocabulary to disk
   cout << endl << "Saving vocabulary..." << endl;
-  voc.save("small_voc.yml.gz");
-  voc.saveToTextFile("Myvoc_4544.txt");
+  voc.save("small_voc_9207.yml.gz");
+  voc.saveToTextFile("Myvoc_9207.txt");
   cout << "Done" << endl;
 }
 
@@ -153,7 +158,6 @@ void testDatabase(const vector<vector<cv::Mat > > &features)
 
   // load the vocabulary from disk
   OrbVocabulary voc("small_voc.yml.gz");
-  // BriefVocabulary voc("small_voc.yml.gz");
   
   OrbDatabase db(voc, false, 0); // false = do not use direct index
   // BriefDatabase db(voc, false, 0); // false = do not use direct index
@@ -197,7 +201,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features)
   // once saved, we can load it again  
   cout << "Retrieving database once again..." << endl;
   OrbDatabase db2("small_db.yml.gz");
-  // BriefDatabase db2("small_db.yml.gz");
+
   cout << "... done! This is: " << endl << db2 << endl;
 }
 
