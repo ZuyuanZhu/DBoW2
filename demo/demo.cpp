@@ -68,7 +68,7 @@ void loadFeatures(vector<vector<cv::Mat>> &features)
 
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
 
-  std::string image_folder = "images";
+  std::string image_folder = "/media/zuyuan/DATA1TB/Jackal/jackal_zed_small_Fri_1_0_every_other";
 
   cout << "Extracting ORB features..." << endl;
   boost::filesystem::directory_iterator end_itr; // Default constructor yields past-the-end

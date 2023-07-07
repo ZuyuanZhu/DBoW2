@@ -50,7 +50,7 @@ if(BUILD_Demo)
   add_executable(demo demo/demo.cpp)
   target_link_libraries(demo ${PROJECT_NAME} ${OpenCV_LIBS} ${Boost_LIBRARIES})
   set_target_properties(demo PROPERTIES CXX_STANDARD 11)
-  file(COPY demo/images DESTINATION ${CMAKE_BINARY_DIR}/)
+  #file(COPY demo/images DESTINATION ${CMAKE_BINARY_DIR}/)
 endif(BUILD_Demo)
 
 configure_file(src/DBoW2.cmake.in
